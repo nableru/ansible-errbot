@@ -1,36 +1,48 @@
 ---
 # tasks file for errbot
-- name: Install errbot
-  pip: name=errbot state=present executable={{ virtualenv_pip }}
 
-- name: Create errbot directories
-  file: path={{ item }} state=directory
-        owner={{ errbot_user }} group={{ errbot_user }} mode=0775
-  become: yes
-  with_items: "{{ errbot_directories }}"
+- name: Inlude errbot backend vars
+  include_vars: backend_{{ errbot_backend }}.yml
+  when: errbot_backend in ['Hipchat', 'IRC', 'Slack', 'Telegram', 'XMPP']
 
-- name: Intitalize errbot
-  shell: cmd="cd {{ errbot_root }} && {{ errbot_exec }} --init "
-         creates={{ errbot_root }}/config.py
-
-- include_vars: backend_{{ errbot_backend }}.yml
-  when: errbot_backend in ('Hipchat', 'IRC', 'Slack', 'Telegram', 'XMPP')
-
-- name: install extra dependencies
-  pip: name={{ item }} state=present executable={{ virtualenv_pip }}
-  with_items: "{{ errbot_extra_deps }}"
+- name: install errbot and extra dependencies
+  pip:
+    name: "{{ item }}"
+    state: present
+    executable: "{{ virtualenv_pip }}"
+  loop: "{{ errbot_extra_deps + [ 'errbot' ] }}"
   notify:
     - Restart errbot
 
+- name: Create errbot directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ errbot_user }}"
+    group: "{{ errbot_user }}"
+    mode: 0775
+  become: yes
+  loop: "{{ errbot_directories }}"
+
+- name: Intitalize errbot
+  shell: "{{ errbot_exec }} --init "
+  args:
+    chdir: "{{ errbot_root }}"
+    creates: "{{ errbot_root }}/config.py"
+
 - name: Update errbot config
-  template: src=templates/config.py.j2 dest={{ errbot_root }}/config.py
+  template:
+    src: config.py.j2
+    dest: "{{ errbot_config }}"
   notify:
     - Check errbot config
     - Restart errbot
 
-- name: Create upstart script
-  template: src=templates/upstart.conf.j2 dest=/etc/init/errbot.conf
+- name: Create SystemD errbot.service
+  template:
+    src: systemd-service.j2
+    dest: "/etc/systemd/system/{{ errbot_systemd_name }}"
   become: yes
   notify:
-    #- Check upstart config
+    - Reload systemd
     - Restart errbot

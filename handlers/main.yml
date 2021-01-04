@@ -1,12 +1,16 @@
 ---
 # handlers file for errbot
 
-- name: Check errbot config
-  shell: "{{ virtualenv }}/bin/python -m py_compile {{ errbot_root }}/config.py"
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  become: yes
 
-- name: Check upstart config
-  shell: /usr/bin/init-checkconf /etc/init/errbot.conf
+- name: Check errbot config
+  shell: "{{ errbot_virtualenv }}/bin/python -m py_compile {{ errbot_root }}/config.py"
 
 - name: Restart errbot
-  service: name=errbot state=restarted
+  ansible.builtin.systemd:
+    name: "{{ errbot_systemd_name }}"
+    state: restarted
   become: yes

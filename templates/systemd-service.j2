@@ -1,0 +1,14 @@
+Description=Errbot chatbot daemon
+After=network.service
+
+[Service]
+Environment="LC_ALL=en_US.UTF-8"
+Environment="PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:{{ errbot_exec | dirname }}"
+ExecStart={{ errbot_exec }} --config {{ errbot_config }}
+WorkingDirectory={{ errbot_virtualenv }}
+User={{ errbot_user }}
+Restart=always
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.targe

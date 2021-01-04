@@ -4,9 +4,12 @@
 project: errbot
 
 errbot_root: /opt/errbot
+errbot_virtualenv: "{{ virtualenv }}"
+errbot_config: "{{ errbot_root }}/config.py"
 errbot_user: "{{ ansible_user_id }}"
-errbot_exec: "{{ virtualenv }}/bin/errbot"
+errbot_exec: "{{ errbot_virtualenv }}/bin/errbot"
 errbot_extra_deps: []
+errbot_systemd_name: "errbot.service"
 
 # Debug backends to test your plugins manually:
 # 'Text'     - on the text console
@@ -133,28 +136,27 @@ errbot_identity_nickserv_password: None     # optional
 ##    example: 'bind_address': ('my-errbot.io', 0)
 errbot_identity_bind_address: "(localhost', 0)"
 
-
 # Set the admins of your bot. Only these users will have access
 # to the admin-only commands.
 #
 # Unix-style glob patterns are supported, so 'gbin@localhost'
 # would be considered an admin if setting '*@localhost'.
-errbot_bot_admins:
-  - "{{ ansible_user_id }}@localhost"
+# errbot_bot_admins:
+#   - "{{ ansible_user_id }}@localhost"
 
 # Chatrooms your bot should join on startup. For the IRC backend you
 # should include the # sign here. For XMPP rooms that are password
 # protected, you can specify another tuple here instead of a string,
 # using the format (RoomName, Password).
-errbot_chatroom_presence:
-  - err@conference.server.tld
+# errbot_chatroom_presence:
+#   - err@conference.server.tld
 
 # The FullName, or nickname, your bot should use. What you set here will
 # be the nickname that Errbot shows in chatrooms. Note that some XMPP
 # implementations, notably HipChat, are very picky about what name you
 # use. In the case of HipChat, make sure this matches exactly with the
 # name you gave the user.
-errbot_chatroom_fn: Errbot
+# errbot_chatroom_fn: Errbot
 
 ##########################################################################
 # Prefix configuration                                                   #
